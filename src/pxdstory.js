@@ -221,7 +221,11 @@ function show_author_article() {
     //console.log(data);
     if (data) {
       //var json=JSON.parse(data);
+
       let json = data.slice(0, 5)
+      json.sort(function (a, b) {
+        return b.date - a.date
+      })
 
       var article_list_div = $("#author_article_list")
 

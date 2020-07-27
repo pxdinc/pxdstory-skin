@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "eslint \"src/**/*.js\" --quiet --fix",
     "test": "jest --coverage",
-    "deploy": "npm run lint && gsutil cp src/*.js gs://pxd-statics/scripts/"
+    "deploy": "npm run lint && gsutil -h \"Cache-Control:no-cache,max-age=0\" cp src/*.js gs://pxd-statics/scripts/"
   },
   "author": "taekie@pxd.co.kr",
   "license": "ISC",

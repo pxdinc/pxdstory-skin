@@ -273,6 +273,7 @@ function show_reference_tag() {
 
   for (m of matches) {
     var tag = m[1]
+    text = text.replace(m[0], "")
     tags.push(tag)
   }
 
@@ -290,6 +291,7 @@ function show_reference_tag() {
 
   if (tags.length) {
     show_articles_by_tag(tags)
+    $(".article_view").html(text)
   }
 }
 

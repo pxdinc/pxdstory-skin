@@ -21,12 +21,12 @@ $(document).ready(function () {
   //abtest();
   easy_nav()
   remove_private_category()
-  new_article_list_author()
+  // new_article_list_author()
+  show_reference_tag()
 
   setTimeout(function () {
     add_article_edit_link()
     show_profile()
-    show_reference_tag()
     show_author_article()
 
     abtest()
@@ -46,11 +46,12 @@ function add_article_edit_link() {
 
 var author
 function show_profile() {
-  author = $(".author").text()
+  author = $(".author:first").text()
   author = author.replace(/ \(.*\)/, "")
 
   var div = $("<div>").addClass("about_author")
-  $(".area_tag").after(div)
+  if ($(".area_tag").length) $(".area_tag").after(div)
+  else $(".article_content").prepend(div)
   div.append("<div class=profile></div>")
   div.append("<h3 class=title_related>" + author + "님 최근 글</h3>")
   div.append("<ul id=author_article_list class=article_list></ul>")
@@ -186,7 +187,7 @@ function show_articles_by_tag(tags) {
         li.html(
           "<a href=/" +
             no +
-            "><img class=thumb src='" +
+            "><img class=thumb loading=lazy src='" +
             url +
             "'><div class=info><span class=title>" +
             title +
@@ -214,7 +215,7 @@ function show_articles_by_tag(tags) {
 }
 
 function show_author_article() {
-  author = $(".author").text()
+  author = $(".author:first").text()
   //var url="https://pxd-story-dashboard.g15e.com/article-data/author,tags,title,article_id,thumbnail,date?author="+author;
   let url = "https://story-api.pxd.systems/article-metas?authors=" + author
   $.get(url, function (data) {
@@ -222,7 +223,8 @@ function show_author_article() {
     if (data) {
       //var json=JSON.parse(data);
 
-      let json = data.slice(0, 5)
+      // let json = data.slice(0, 5)
+      let json = data
       json.sort(function (a, b) {
         return b.date - a.date
       })
@@ -244,7 +246,7 @@ function show_author_article() {
         li.html(
           "<a href=/" +
             no +
-            "><img class=thumb src='" +
+            "><img class=thumb loading=lazy src='" +
             url +
             "'><span class=title>" +
             title +
@@ -253,7 +255,18 @@ function show_author_article() {
             "</span></a><br clear=both> ",
         )
         //console.log(title,text,date,no)
+        if (i >= 5) li.css("display", "none")
         article_list_div.append(li)
+      }
+
+      if (json.length > 5) {
+        let more_button = $("<span class=more_button>")
+          .text(json.length + "개 모두 보기")
+          .click(function () {
+            $(this).parent().children("li").show()
+            $(this).hide()
+          })
+        $("li", article_list_div).eq(4).after(more_button)
       }
     }
   })
@@ -281,7 +294,8 @@ function show_reference_tag() {
 
   if (tags.length) $(".article_view").html(text)
 
-  if (!tags.length) {
+  if (!tags.length && $(".tag_content").length) {
+    // if (!tags.length) {
     tags.push($(".tag_content a:first").text())
   }
 

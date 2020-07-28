@@ -268,7 +268,7 @@ function show_reference_tag() {
   if (!text) return
 
   //console.log(text);
-  var matches = text.matchAll(/참고##(.+?)##/gm)
+  var matches = text.matchAll(/\[참고##(.+?)##\]/gm)
   var tags = []
 
   for (m of matches) {
@@ -278,6 +278,8 @@ function show_reference_tag() {
   }
 
   tags = tags.filter(onlyUnique)
+
+  if (tags.length) $(".article_view").html(text)
 
   if (!tags.length) {
     tags.push($(".tag_content a:first").text())
@@ -291,7 +293,6 @@ function show_reference_tag() {
 
   if (tags.length) {
     show_articles_by_tag(tags)
-    $(".article_view").html(text)
   }
 }
 

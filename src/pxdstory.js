@@ -21,15 +21,16 @@ $(document).ready(function () {
   //abtest();
   easy_nav()
   remove_private_category()
-  // new_article_list_author()
+  new_article_list_author()
   show_reference_tag()
 
   setTimeout(function () {
     add_article_edit_link()
     show_profile()
     show_author_article()
+    fetchRelativeList()
 
-    abtest()
+    // abtest()
   }, 2000)
 
   show_fb_reply(document, "script", "facebook-jssdk")
@@ -427,3 +428,62 @@ function mainStorySection() {
 setTimeout(function () {
   mainStorySection()
 }, 100)
+
+async function fetchRelativeList() {
+  let url = window.location.href
+  id = url.match(/\/([0-9]+)/)
+  if (!id) return
+
+  const res = await fetch("https://nlp.pxd.systems/corpora/pxd-story/docs/" + id[1] + "/similar-docs?n=4")
+  const data = await res.json()
+
+  console.log(data)
+
+  let urls = (map1 = data.map((id) => "/" + id))
+  const res_meta = await fetch("https://story-api.pxd.systems/article-metas?urls=" + urls)
+  const data_meta = await res_meta.json()
+
+  // console.log(data_meta)
+  urls.forEach((url, i) => {
+    found = data_meta.find((el) => el.url == url)
+    found.idx = i
+  })
+
+  data_meta.sort((a, b) => {
+    return a.idx - b.idx
+  })
+  console.log(data_meta)
+
+  makeRelativeList(data_meta)
+}
+
+function makeRelativeList(data) {
+  // console.log(data)
+  let div = $("<div class=area_related><h3 class=title_related>관련글</h3><ul class=list_related></ul></div>")
+  $(".area_related").before(div)
+  data.forEach((obj, i) => {
+    let author = obj.author
+    let thumbnail = obj.thumbnail
+    let title = obj.title
+    let url = obj.url
+    let date = obj.date
+    date = smart_date("", new Date(date))
+    let item = $("<li>").addClass("item_related")
+    let s =
+      "<a href=" +
+      url +
+      " class=\"link_related\"><span class=\"thumnail item-thumbnail\" style=\"background-image:url('" +
+      thumbnail +
+      "')\"></span><div class=\"box_content\"><strong>" +
+      title +
+      "</strong><span class=\"author\">" +
+      author +
+      "</span><br><span class=\"info\">" +
+      date +
+      "</span></div></a>"
+    item.html(s)
+    $("ul", div).append(item)
+  })
+
+  $(".area_related").eq(1).css("display", "none")
+}

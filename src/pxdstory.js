@@ -439,6 +439,9 @@ async function fetchRelativeList() {
 
   console.log(data)
 
+  if(data.length==0) return
+
+  
   let urls = (map1 = data.map((id) => "/" + id))
   const res_meta = await fetch("https://story-api.pxd.systems/article-metas?urls=" + urls)
   const data_meta = await res_meta.json()

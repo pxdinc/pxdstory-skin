@@ -46,8 +46,7 @@ function renderDate(d, now) {
   if (offset <= 60) return `${Math.ceil(offset)}분 전`
   if (offset <= 60 * 3) return `${Math.round(offset / 60)}시간 전`
 
-  let ampm = "오전 "
-  if (hour >= 12) ampm = "오후 "
+  const ampm = hour >= 12 ? "오후 " : "오전 "
   if (hour > 12) hour -= 12
   if (min < 10) min = `0${min}`
   let thetime = `${ampm + hour}:${min}`

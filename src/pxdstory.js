@@ -1,17 +1,16 @@
 // @ts-nocheck
-$(document).ready(function () {
+$(function () {
   $(".date").each(function () {
-    var obj = $(this)
-    var date_str = obj.text()
-    var smartdate = smart_date(date_str)
+    const obj = $(this)
+    const smartdate = smart_date(obj.text())
     obj.html(smartdate)
   })
 
-  $(".area_popup").scroll(function () {
+  $(".area_popup").scroll(() => {
     $("input.inp_search:first").attr("autofocus", "autofocus").blur()
   })
 
-  $("button.btn_search").click(function (e) {
+  $("button.btn_search").click((e) => {
     $("input.inp_search").attr("placeholder", "")
     e.stopPropagation()
     $(".area_popup").show()
@@ -37,90 +36,81 @@ $(document).ready(function () {
 })
 
 function add_article_edit_link() {
-  if ($("#article_modify_link").length) {
-    var link = document.location.href
-    var article_id = link.match(/\/[0-9]+/)
-    link = "/manage/newpost" + article_id
-    $("#article_modify_link").attr("href", link)
-  }
+  if (!$("#article_modify_link").length) return
+  const link = document.location.href
+  const article_id = link.match(/\/[0-9]+/)
+  $("#article_modify_link").attr("href", "/manage/newpost" + article_id)
 }
 
-var author
 function show_profile() {
-  author = $(".author:first").text()
-  author = author.replace(/ \(.*\)/, "")
+  const author = $(".author:first")
+    .text()
+    .replace(/ \(.*\)/, "")
 
-  var div = $("<div>").addClass("about_author")
-  if ($(".area_tag").length) $(".area_tag").after(div)
-  else $(".article_content").prepend(div)
+  const div = $("<div>").addClass("about_author")
+  if ($(".area_tag").length) {
+    $(".area_tag").after(div)
+  } else {
+    $(".article_content").prepend(div)
+  }
   div.append("<div class=profile></div>")
   div.append("<h3 class=title_related>" + author + "님 최근 글</h3>")
   div.append("<ul id=author_article_list class=article_list></ul>")
 
-  var url = "https://probetype.com/pxdstory/do_action.php?do=get_profile&name=" + author
-  $.get(url, function (data) {
-    //console.log(data);
+  const url = "https://probetype.com/pxdstory/do_action.php?do=get_profile&name=" + author
+  $.get(url, (data) => {
     data = data.replace(/\n/, "")
-    if (data) {
-      var json = JSON.parse(data)
+    if (!data) return
 
-      var profile_div = $(".profile")
-      profile_div.append(
-        $(
-          "<div class=profile_text><span class=name>" +
-            json.name +
-            "</span><span class=desc>" +
-            json.desc +
-            "</span></div>",
-        ),
-      )
+    const profile_div = $(".profile")
+    profile_div.append(
+      $(
+        "<div class=profile_text><span class=name>" +
+          data.name +
+          "</span><span class=desc>" +
+          data.desc +
+          "</span></div>",
+      ),
+    )
 
-      let url = json.img
-      if (url) {
-        if (!url.match("^http")) url = "http:" + url
-        var img = $("<div>")
-          .css("background-image", "url('" + url + "')")
-          .addClass("profile_img")
-        profile_div.prepend(img)
-        var img2 = img.clone().addClass("small")
-        var name_obj = $(".author").eq(0)
-        var name = name_obj.text()
-        name_obj.html("<span class=name>" + name + "</span>")
-        name_obj.prepend(img2)
-      }
-    }
-    //console.log(json)
+    let imageUrl = data.img
+    if (!imageUrl) return
+
+    if (!imageUrl.match("^http")) imageUrl = "http:" + imageUrl
+    const img = $("<div>")
+      .css("background-image", "url('" + imageUrl + "')")
+      .addClass("profile_img")
+    profile_div.prepend(img)
+    const img2 = img.clone().addClass("small")
+    const name_obj = $(".author").eq(0)
+    const name = name_obj.text()
+    name_obj.html("<span class=name>" + name + "</span>")
+    name_obj.prepend(img2)
   })
 }
 
 function new_article_list_author() {
-  let curation_articles = []
+  const curation_articles = []
   $(".list_type_notice li a").each((i, element) => {
-    let article_id = $(element)
+    const article_id = $(element)
       .attr("href")
       .match(/[0-9]+/)[0]
     curation_articles.push("/" + article_id)
     $(element).attr("article_id", article_id)
   })
   console.log(curation_articles)
-  //let url="https://pxd-story-dashboard.g15e.com/article-data/author,article_id,thumbnail?ids="+curation_articles;
-  let url = "https://story-api.pxd.systems/article-metas?urls=" + curation_articles
 
   if (curation_articles.length == 0) {
     show_list_profile_img()
     return
   }
-  $.get(url, function (data) {
-    if (!data) return
-    let articles = data
-    let authors = []
-    articles.forEach((article) => {
-      let author = article.author
-      authors.push(author)
-      let no = article.url.replace("/", "")
-      let url = article.thumbnail
-      url = "url(" + url + ")"
 
+  const url = "https://story-api.pxd.systems/article-metas?urls=" + curation_articles
+  $.get(url, (articles) => {
+    if (!articles) return
+    articles.forEach((article) => {
+      const author = article.author
+      const no = article.url.replace("/", "")
       $(".list_type_notice li a[article_id=" + no + "] .notice_author").text(author)
     })
     show_list_profile_img()
@@ -128,68 +118,55 @@ function new_article_list_author() {
 }
 
 function show_list_profile_img() {
-  let authors = []
+  const authors = []
   $("li .author_list, li .notice_author").each((i, element) => {
-    let author = $(element).text()
-    author = author.replace(/ \(.*\)/, "")
-    author = author.trim()
+    const author = $(element)
+      .text()
+      .replace(/ \(.*\)/, "")
+      .trim()
     authors.push(author)
     $(element).attr("author", author)
   })
 
-  //unique
-  var author = authors.filter((v, i, a) => a.indexOf(v) === i)
-
-  let url2 = "https://probetype.com/pxdstory/do_action.php?do=get_profiles&name=" + authors
+  const url2 = "https://probetype.com/pxdstory/do_action.php?do=get_profiles&name=" + authors
   console.log(authors)
   $.get(url2, function (data) {
     if (!data) return
-    let json = JSON.parse(data)
-    json.result.forEach((user) => {
-      let img = user.img
-      let author = user.name
+    JSON.parse(data).result.forEach((user) => {
+      const img = user.img
+      const author = user.name
+      if (!img) return
 
-      if (img) {
-        let url = "url('" + img + "')"
-        let thumb = $("<div>").addClass("profile_img small").css("background-image", url)
-        $("li span[author='" + author + "']").before(thumb)
-      }
+      const url = "url('" + img + "')"
+      const thumb = $("<div>").addClass("profile_img small").css("background-image", url)
+      $("li span[author='" + author + "']").before(thumb)
     })
   })
 }
 
 function show_articles_by_tag(tags) {
-  //var url="https://pxd-story-dashboard.g15e.com/article-data/author,tags,article_id,date,title,thumbnail?tags="+tags;
-  var url = "https://story-api.pxd.systems/article-metas?tags=" + tags
+  const url = "https://story-api.pxd.systems/article-metas?tags=" + tags
 
-  $.get(url, function (data) {
-    //console.log(data);
+  $.get(url, (data) => {
     if (!data) return
 
-    //var json=JSON.parse(data);
-    let json = data
-    let articlesByTag = []
-    tags.forEach((t) => {
-      let matches = json.filter((article) => article["tags"].indexOf(t) !== -1)
-      articlesByTag.push(matches)
-    })
+    const articlesByTag = tags.map((t) => data.filter((a) => a["tags"].indexOf(t) !== -1))
 
     $(".tag_article_list").each((i, element) => {
-      let articles = articlesByTag[i]
+      const articles = articlesByTag[i]
       element.before($("<h3>").addClass("title_related").text(tags[i])[0])
-      articles.forEach((article, i) => {
-        var title = article.title
-        var author = article.author
-        var url = article.thumbnail
-        var date = article.date
-        let no = article.url.replace("/", "")
-        date = smart_date(date, new Date(date))
-        var li = $("<li>")
+      articles.forEach((article) => {
+        const title = article.title
+        const author = article.author
+        const imageUrl = article.thumbnail
+        const date = smart_date(article.date, new Date(article.date))
+        const no = article.url.replace("/", "")
+        const li = $("<li>")
         li.html(
           "<a href=/" +
             no +
             "><img class=thumb loading=lazy src='" +
-            url +
+            imageUrl +
             "'><div class=info><span class=title>" +
             title +
             "</span> <br><span class=author>" +
@@ -198,78 +175,60 @@ function show_articles_by_tag(tags) {
             date +
             "</span></div> </a><br clear=both> ",
         )
-        //console.log(li);
         if (i >= 5) li.css("display", "none")
         element.append(li[0])
       })
-      if (articles.length > 5) {
-        let more_button = $("<span class=more_button>")
-          .text(articles.length + "개 모두 보기")
-          .click(function () {
-            $(this).parent().children("li").show()
-            $(this).hide()
-          })
-        $("li", element).eq(4).after(more_button)
-      }
+
+      if (!articles.length <= 5) return
+      const more_button = $("<span class=more_button>")
+        .text(articles.length + "개 모두 보기")
+        .click(function () {
+          $(this).parent().children("li").show()
+          $(this).hide()
+        })
+      $("li", element).eq(4).after(more_button)
     })
   })
 }
 
 function show_author_article() {
-  author = $(".author:first").text()
-  //var url="https://pxd-story-dashboard.g15e.com/article-data/author,tags,title,article_id,thumbnail,date?author="+author;
-  let url = "https://story-api.pxd.systems/article-metas?authors=" + author
-  $.get(url, function (data) {
-    //console.log(data);
-    if (data) {
-      //var json=JSON.parse(data);
+  const author = $(".author:first").text()
+  const url = "https://story-api.pxd.systems/article-metas?authors=" + author
+  $.get(url, (articles) => {
+    if (!articles) return
+    articles.sort((a, b) => b.date - a.date)
 
-      // let json = data.slice(0, 5)
-      let json = data
-      json.sort(function (a, b) {
-        return b.date - a.date
+    const article_list_div = $("#author_article_list")
+
+    articles.forEach((article, i) => {
+      const title = article.title
+      const imageUrl = article.thumbnail
+      const date = smart_date(article.date, new Date(article.date))
+      const no = article.url.replace("/", "")
+      const li = $("<li article_id=" + no + ">")
+      li.html(
+        "<a href=/" +
+          no +
+          "><img class=thumb loading=lazy src='" +
+          imageUrl +
+          "'><span class=title>" +
+          title +
+          "</span> <br><span class=date>" +
+          date +
+          "</span></a><br clear=both> ",
+      )
+      if (i >= 5) li.css("display", "none")
+      article_list_div.append(li)
+    })
+
+    if (articles.length <= 5) return
+    let more_button = $("<span class=more_button>")
+      .text(articles.length + "개 모두 보기")
+      .click(function () {
+        $(this).parent().children("li").show()
+        $(this).hide()
       })
-
-      var article_list_div = $("#author_article_list")
-
-      for (var i = 0; i < json.length; i++) {
-        var article = json[i]
-        var title = article.title
-        //var text=article.text;
-        var text = ""
-        var url = article.thumbnail
-
-        var date = article.date
-        let no = article.url.replace("/", "")
-        text = text.substring(0, 80)
-        date = smart_date(date, new Date(date))
-        var li = $("<li article_id=" + no + ">")
-        li.html(
-          "<a href=/" +
-            no +
-            "><img class=thumb loading=lazy src='" +
-            url +
-            "'><span class=title>" +
-            title +
-            "</span> <br><span class=date>" +
-            date +
-            "</span></a><br clear=both> ",
-        )
-        //console.log(title,text,date,no)
-        if (i >= 5) li.css("display", "none")
-        article_list_div.append(li)
-      }
-
-      if (json.length > 5) {
-        let more_button = $("<span class=more_button>")
-          .text(json.length + "개 모두 보기")
-          .click(function () {
-            $(this).parent().children("li").show()
-            $(this).hide()
-          })
-        $("li", article_list_div).eq(4).after(more_button)
-      }
-    }
+    $("li", article_list_div).eq(4).after(more_button)
   })
 }
 
@@ -278,15 +237,14 @@ function onlyUnique(value, index, self) {
 }
 
 function show_reference_tag() {
-  var text = $(".article_view").html()
+  let text = $(".article_view").html()
   if (!text) return
 
-  //console.log(text);
-  var matches = text.matchAll(/\[참고##(.+?)##\]/gm)
-  var tags = []
+  const matches = text.matchAll(/\[참고##(.+?)##\]/gm)
+  let tags = []
 
-  for (m of matches) {
-    var tag = m[1]
+  for (let m of matches) {
+    const tag = m[1]
     text = text.replace(m[0], "")
     tags.push(tag)
   }
@@ -296,14 +254,12 @@ function show_reference_tag() {
   if (tags.length) $(".article_view").html(text)
 
   if (!tags.length && $(".tag_content").length) {
-    // if (!tags.length) {
     tags.push($(".tag_content a:first").text())
   }
 
-  tags.forEach((tag) => {
-    var article_list_div = $("<ul>").attr("tag", tag).addClass("article_list").addClass("tag_article_list")
+  tags.forEach((t) => {
+    let article_list_div = $("<ul>").attr("tag", t).addClass("article_list").addClass("tag_article_list")
     $(".container_postbtn").before(article_list_div)
-    //article_list_div.append($("<li>").text(tag))
   })
 
   if (tags.length) {
@@ -313,33 +269,30 @@ function show_reference_tag() {
 
 function remove_private_category() {
   $("ul.category_list li").each(function () {
-    var item = $(this)
     if (
       $("a", this)
         .html()
         .match(/Private/)
     )
-      item.remove()
+      $(this).remove()
   })
 }
 
 function abtest() {
-  var url = window.location.href
-  var testflag = url.match(/testcode=([^&]+)/)
-  var testcode = ""
-  if (testflag) testcode = testflag[1]
-  var rolling_dice = Math.random()
-  //if(testcode=="" && rolling_dice<0.3) testcode="0506"
+  const url = window.location.href
+  const testflag = url.match(/testcode=([^&]+)/)
+  const testcode = testflag ? testflag[1] : ""
+  // const rolling_dice = Math.random()
+  // if(testcode=="" && rolling_dice<0.3) testcode="0506"
   console.log(testcode)
 
-  var add_testcode = function () {
+  const add_testcode = () => {
     $("a").each(function () {
-      var link = $(this).attr("href")
-      if (link) {
-        link += link.match(/\?/) ? "&" : "?"
-        link += "testcode=" + testcode
-        $(this).attr("href", link)
-      }
+      let link = $(this).attr("href")
+      if (!link) return
+      link += link.match(/\?/) ? "&" : "?"
+      link += "testcode=" + testcode
+      $(this).attr("href", link)
     })
   }
 
@@ -360,52 +313,52 @@ function easy_nav() {
   $(".area_paging").css("display", "none")
   if ($(".area_paging").length == 0) return
 
-  var max = parseInt($(".area_paging .link_num:last").text())
-  var current = parseInt($(".area_paging span.selected").text())
-  var next_link_href = $(".link_page.link_next").attr("href")
+  const max = parseInt($(".area_paging .link_num:last").text())
+  const current = parseInt($(".area_paging span.selected").text())
+  const next_link_href = $(".link_page.link_next").attr("href")
   if (!next_link_href.match("page")) return
 
-  var prev = current - 1
-  var next = current + 1
+  let prev = current - 1
+  let next = current + 1
   if (prev < 1) prev = ""
   if (next > max) next = ""
 
-  var prev_link = $("<a>")
+  const prev_link = $("<a>")
     .attr("href", "?page=" + prev)
     .text("이전")
-  var next_link = $("<a>")
+  const next_link = $("<a>")
     .attr("href", "?page=" + next)
     .text("다음")
-  var current_link = $("<a>")
+  const current_link = $("<a>")
     .attr("onclick", "expand_pages()")
     .text(current + "/" + max)
-  var s = "<table><tr><td></td><td class=page_num></td><td></td></tr></table>"
+  const s = "<table><tr><td></td><td class=page_num></td><td></td></tr></table>"
 
   if (prev == "") prev_link.addClass("disabled")
   if (next == "") next_link.addClass("disabled")
 
-  var new_paging = $("<div>").attr("id", "new_paging").html(s)
-
+  const new_paging = $("<div>").attr("id", "new_paging").html(s)
   new_paging.insertAfter($(".area_paging"))
   $("#new_paging td").eq(0).append(prev_link)
   $("#new_paging td").eq(1).append(current_link)
   $("#new_paging td").eq(2).append(next_link)
 
-  var all_links = $("<div>").attr("id", "all_links").html("<table><tr></tr></table>")
+  const all_links = $("<div>").attr("id", "all_links").html("<table><tr></tr></table>")
   all_links.insertAfter(new_paging)
-  for (var i = 1; i <= max; i++) {
-    var link = $("<a>")
+  for (let i = 1; i <= max; i++) {
+    const link = $("<a>")
       .attr("href", "?page=" + i)
       .text(i)
-    if (i == current) link.addClass("selected")
+    if (i === current) link.addClass("selected")
     $("#all_links tr:last").append($("<td>"))
     $("#all_links td:last").append(link)
-    if (i % 10 == 0) $("#all_links table").append($("<tr>"))
+    if (i % 10 === 0) $("#all_links table").append($("<tr>"))
   }
 }
+
 function expand_pages() {
-  var view = $("#all_links").css("display")
-  $("#all_links").css("display", view == "none" ? "block" : "none")
+  const view = $("#all_links").css("display")
+  $("#all_links").css("display", view === "none" ? "block" : "none")
 }
 
 function show_fb_reply(d, s, id) {
@@ -417,71 +370,61 @@ function show_fb_reply(d, s, id) {
   js.src = "//connect.facebook.net/ko_KR/all.js#xfbml=1"
   fjs.parentNode.insertBefore(js, fjs)
 }
+
 function mainStorySection() {
-  var type_notice = document.querySelectorAll(".type_notice")
-  for (var i = 0; i < type_notice.length; i++) {
-    selector = type_notice[0]
+  const type_notice = document.querySelectorAll(".type_notice")
+  for (let i = 0; i < type_notice.length; i++) {
     type_notice[i].classList.add("list" + i)
   }
   $(".list0").append("<div class='main-more-btn'><a href='/category/?page=1'><span>새로운 글 더보기</span></a></div>")
 }
+
 setTimeout(function () {
   mainStorySection()
 }, 100)
 
 async function fetchRelativeList() {
-  let url = window.location.href
-  id = url.match(/\/([0-9]+)/)
+  const id = window.location.href.match(/\/([0-9]+)/)
   if (!id) return
 
   const res = await fetch("https://nlp.pxd.systems/corpora/pxd-story/docs/" + id[1] + "/similar-docs?n=4")
   const data = await res.json()
+  if (data.length === 0) return
 
-  console.log(data)
-
-  if(data.length==0) return
-
-  
-  let urls = (map1 = data.map((id) => "/" + id))
+  const urls = data.map((articleId) => "/" + articleId)
   const res_meta = await fetch("https://story-api.pxd.systems/article-metas?urls=" + urls)
   const data_meta = await res_meta.json()
 
-  // console.log(data_meta)
   urls.forEach((url, i) => {
-    found = data_meta.find((el) => el.url == url)
+    const found = data_meta.find((el) => el.url == url)
     found.idx = i
   })
 
-  data_meta.sort((a, b) => {
-    return a.idx - b.idx
-  })
-  console.log(data_meta)
+  data_meta.sort((a, b) => a.idx - b.idx)
 
   makeRelativeList(data_meta)
 }
 
 function makeRelativeList(data) {
-  // console.log(data)
-  let div = $("<div class=area_related><h3 class=title_related>관련글</h3><ul class=list_related></ul></div>")
+  const div = $("<div class=area_related><h3 class=title_related>관련글</h3><ul class=list_related></ul></div>")
   $(".area_related").before(div)
   data.forEach((obj, i) => {
-    let author = obj.author
-    let thumbnail = obj.thumbnail
-    let title = obj.title
-    let url = obj.url
-    let date = obj.date
-    date = smart_date("", new Date(date))
-    let item = $("<li>").addClass("item_related")
-    let s =
+    const author = obj.author
+    const thumbnail = obj.thumbnail
+    const title = obj.title
+    const url = obj.url
+    const date = smart_date("", new Date(obj.date))
+    const item = $("<li>").addClass("item_related")
+    const s =
       "<a href=" +
       url +
-      " class=\"link_related\"><span class=\"thumnail item-thumbnail\" style=\"background-image:url('" +
+      ' class="link_related"><span class="thumnail item-thumbnail" style="background-image:url(\'' +
       thumbnail +
-      "')\"></span><div class=\"box_content\"><strong>" +
+      '\')"></span><div class="box_content"><strong>' +
       title +
-      "</strong><span class=\"author\">" +
+      '</strong><span class="author">' +
       author +
-      "</span><br><span class=\"info\">" +
+      '</span><br><span class="info">' +
       date +
       "</span></div></a>"
     item.html(s)

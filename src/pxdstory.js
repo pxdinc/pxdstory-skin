@@ -132,7 +132,7 @@ function show_list_profile_img() {
   console.log(authors)
   $.get(url2, function (data) {
     if (!data) return
-    JSON.parse(data).result.forEach((user) => {
+    data.result.forEach((user) => {
       const img = user.img
       const author = user.name
       if (!img) return

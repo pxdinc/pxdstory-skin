@@ -1,4 +1,14 @@
 window.addEventListener("DOMContentLoaded", async () => {
+  // find P elements and convert into DIVs
+  const ps = [...document.querySelectorAll("p")].filter(p => p.textContent.trim().startsWith("ob:"))
+  ps.forEach(p => {
+    const parent = p.parentNode
+    const div = document.createElement('div')
+    div.dataset.ob = p.textContent.trim().split(":")[1]
+    parent.insertBefore(div, p)
+    parent.removeChild(p)
+  })
+
   // find elements to embed cells
   const cells = [...document.querySelectorAll("[data-ob]")].map((element) => {
     const data = element.dataset.ob

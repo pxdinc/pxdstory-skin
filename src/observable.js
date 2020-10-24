@@ -33,11 +33,29 @@ window.addEventListener("DOMContentLoaded", async () => {
     module: obj.default,
   }))
 
-  // embed cells into elements
+  // embed cells into backstage
+  const backstage = document.createElement('div')
+  backstage.style.display = 'none'
+  document.body.appendChild(backstage)
+  notebooks.forEach((nb) => {
+    new Runtime().module(nb.module, (cellName) => {
+      const wrapper = document.createElement('div')
+      wrapper.dataset.ob = `${nb.key}/${cellName}`
+      backstage.appendChild(wrapper)
+      return new Inspector(wrapper)
+    })
+  })
+
+  // move cells into stage
   notebooks.forEach((nb) => {
     new Runtime().module(nb.module, (cellName) => {
       const cell = cells.find((c) => c.notebookKey == nb.key && c.cellName === cellName)
-      if (cell) return new Inspector(cell.element)
+      if (!cell) return
+
+      const element = backstage.querySelector(`[data-ob="${nb.key}/${cellName}"]`)
+      console.log(element)
+      cell.element.parentNode.insertBefore(element, cell.element)
+      cell.element.parentNode.removeChild(cell.element)
     })
   })
 })

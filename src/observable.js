@@ -10,13 +10,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     const candidateTags = new Set(["em", "strong", "i", "b", "span", "q", "p", "div", "blockquote", "li"])
     const candidates = [...document.querySelectorAll([...candidateTags].join(","))]
     candidates
-      .filter((e) => (e.textContent || "").trim().startsWith("ob:"))
+      .filter((e) => (e.innerHTML || "").trim().startsWith("ob:"))
       .forEach((e) => {
         const parent = e.parentNode
         if (!parent) return
 
         const wrapper = document.createElement(e.tagName)
-        wrapper.dataset.ob = (e.textContent || "").trim().split(":")[1]
+        wrapper.dataset.ob = (e.innerHTML || "").trim().split(":")[1]
         parent.insertBefore(wrapper, e)
         parent.removeChild(e)
       })
@@ -49,7 +49,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     if (!notebookKeys.length) return backstage
 
     // load Observable Runtime and notebooks
-    const [{ Runtime, Inspector }, notebookModules] = await Promise.all([
+    const [{ Runtime, Inspector, Library }, notebookModules] = await Promise.all([
       // @ts-ignore
       import("https://cdn.jsdelivr.net/npm/@observablehq/runtime@4/dist/runtime.js"),
       Promise.all(notebookKeys.map((key) => import(`https://api.observablehq.com/@${key}.js?v=3`))),
@@ -57,8 +57,9 @@ window.addEventListener("DOMContentLoaded", async () => {
     const notebookMap = Object.fromEntries(notebookModules.map((obj, i) => [notebookKeys[i], obj.default]))
 
     // load notebook cells into backstage
+    const observableStdLib = _createObservableStdLib(Library)
     Object.entries(notebookMap).forEach(([nbKey, nbModule]) => {
-      new Runtime().module(
+      new Runtime(observableStdLib).module(
         nbModule,
         /**
          * @param {string} cellName
@@ -91,6 +92,32 @@ window.addEventListener("DOMContentLoaded", async () => {
       cell.element.parentNode.insertBefore(element, cell.element)
       cell.element.parentNode.removeChild(cell.element)
     })
+  }
+
+  /**
+   * @param {any} Library
+   */
+  function _createObservableStdLib(Library) {
+    const stdLib = new Library()
+    const widthTarget = document.querySelector(".observable-width-target") || document.body
+    if (widthTarget === document.body) return stdLib
+
+    const customLib = Object.assign({}, stdLib, { width })
+    function width() {
+      return stdLib.Generators.observe(
+        /** @param {(width: number) => number} notify */
+        (notify) => {
+          let width = notify(widthTarget.clientWidth)
+          function resized() {
+            let width1 = widthTarget.clientWidth
+            if (width1 !== width) notify((width = width1))
+          }
+          window.addEventListener("resize", resized)
+          return () => window.removeEventListener("resize", resized)
+        },
+      )
+    }
+    return customLib
   }
 
   await main()

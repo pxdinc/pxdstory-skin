@@ -1,6 +1,6 @@
 {
   "parserOptions": {
-    "ecmaVersion": 2018,
+    "ecmaVersion": 2020,
     "sourceType": "module"
   },
   "extends": [
@@ -21,10 +21,6 @@
     "semi": [
       "error",
       "never"
-    ],
-    "quotes": [
-      "error",
-      "double"
     ]
   }
 }

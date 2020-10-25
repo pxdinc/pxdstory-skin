@@ -59,7 +59,6 @@ function show_profile() {
 
   const url = "https://probetype.com/pxdstory/do_action.php?do=get_profile&name=" + author
   $.get(url, (data) => {
-
     if (!data) return
 
     const profile_div = $(".profile")
